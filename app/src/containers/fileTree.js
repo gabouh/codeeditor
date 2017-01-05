@@ -1,13 +1,15 @@
 import React from 'react';
-
 //redux
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+//action
 import {
     addFolder,
     editFolder,
     deleteFolder,
-    addFile
+    addFile,
+    editFile,
+    deleteFile
 } from '../actions/action_fileTree'
 
 //Material Components
@@ -47,7 +49,7 @@ const styles = {
     },
     fileTree: {
         overflowY: 'scroll',
-        'maxHeight': '80%'
+        'height': '500px'
     }
 }
 
@@ -115,18 +117,6 @@ class TreeNode extends React.Component {
     handleAddFile(event, folder) {
 
         this.props.addFile(folder)
-        // var currentNode = this.props.node;
-        // var id = 1;
-        // if (currentNode) {
-        //     var currentFolderChilds = currentNode[folderIndex].childNodes;
-        //     if (currentFolderChilds.length > 0)
-        //         id = currentFolderChilds[currentFolderChilds.length - 1].id + 1;
-        // }
-        // var childNode = { ...newFileTemplate, id: id }
-        // var childNodes = [...currentNode[folderIndex].childNodes, childNode];
-        // var newState = currentNode.slice();
-
-        // newState[folderIndex].childNodes = childNodes;
 
         this.setState((prevState) => {
             return { ...prevState, snackbarMsg: 'New file added', snackbaropen: true }
@@ -135,37 +125,22 @@ class TreeNode extends React.Component {
     }
 
     //handle File name Edit
-    OnEditFileName(folderIndex, fileIndex, filename) {
-        var currentNode = this.props.node;
-        var currentFile = currentNode[folderIndex].childNodes[fileIndex];
+    OnEditFileName(folderId, file, filename) {
 
-        var childNode = { ...currentFile, title: filename };
-        var childNodes = [...currentNode[folderIndex].childNodes.slice(0, fileIndex), childNode, ...currentNode[folderIndex].childNodes.slice(fileIndex + 1)];
-
-        var newState = currentNode.slice();
-
-        newState[folderIndex].childNodes = childNodes;
-
-        //   if(this.props.onChange)
-        //       this.props.onChange(newState,folderIndex,childNodes.length-1);
-
+        var payload = {};
+        payload.file = { ...file, title: filename };
+        payload.folderId = folderId;
+        this.props.editFile(payload);
     }
 
 
 
     // handle file delete  
-    onFileDelete(folderIndex, fileIndex) {
-
-        var currentNode = this.props.node;
-
-        var childNodes = [...currentNode[folderIndex].childNodes.slice(0, fileIndex), ...currentNode[folderIndex].childNodes.slice(fileIndex + 1)];
-
-        var newState = currentNode.slice();
-
-        newState[folderIndex].childNodes = childNodes;
-
-        //   if(this.props.onChange)
-        //       this.props.onChange(newState,folderIndex,childNodes.length-1); 
+    onFileDelete(folderId, file) {
+        var payload = {};
+        payload.file = { ...file };
+        payload.folderId = folderId;
+        this.props.deleteFile(payload);
     }
 
     //Snackbar methods
@@ -182,75 +157,82 @@ class TreeNode extends React.Component {
         });
     }
 
+    // Render Helper
+    renderFileListItem(node, childnode) {
+        return (<ListItem leftAvatar={<Avatar icon={<ActionAssignment />} backgroundColor={blue500} />}
+            rightIconButton={
+                <IconButton onClick={() => { this.onFileDelete(node.id, childnode) } }  >
+                    <ActionDelete color={grey400} /></IconButton>}
+            innerDivStyle={styles.listItem}
+            key={childnode.id} >
+            {this.renderFileTextBox(node, childnode)}
+        </ListItem>)
+    }
+    renderFileTextBox(node, childnode) {
+        // let _this = context;
+        return (<TextField
+            defaultValue={childnode.title}
+            style={styles.listTextBox}
+            hintText="Enter file name"
+            onBlur={(e) => { this.OnEditFileName(node.id, childnode, e.target.value) } } />
 
+        );
+    }
+    renderFolderTextBox(node) {
+        return (<TextField
+            defaultValue={node.title}
+            style={styles.listTextBox}
+            hintText="Enter folder name"
+            onBlur={(e) => { this.handleEditFolder(node.id, e.target.value) } }
+            />)
+    }
+    renderFolderListItem(node) {
+        return (<ListItem
+            leftAvatar={<Avatar icon={<FileFolder />} backgroundColor={yellow600} />}
+            rightIconButton={<IconButton onClick={() => { this.handleDeleteFolder(node) } }  >
+                <ActionDelete color={grey400} /></IconButton>}
+            key={node.id}
+            innerDivStyle={styles.listItem}
+            >
+            {this.renderFolderTextBox(node)}
+        </ListItem>);
+    }
 
+    renderAddMoreFileListItem(node) {
+        return (<ListItem key={"add" + node.id}
+            primaryText="Add More File"
+            rightIcon={<ContentAdd />}
+            onClick={(event) => this.handleAddFile(event, node)} />);
+    }
+
+    renderListTree() {
+        let _this = this;
+        return (this.props.node.map(function (node, indexRoot) {
+
+            let fileListItem = node.childNodes.map(function (childnode, index) {
+                return _this.renderFileListItem.call(_this, node, childnode);
+            })
+
+            return (<div key={"div_" + node.id}>
+                <List>
+                    {_this.renderFolderListItem.call(_this, node)}
+                    {fileListItem}
+                    {_this.renderAddMoreFileListItem.call(_this, node)}
+                </List>
+                <Divider inset={true} />
+            </div>)
+        }));
+    }
 
     render() {
-        var childNodes = [];
-        var classObj;
-
-        var _this = this;
 
 
-        var OnEditFileName = this.OnEditFileName;
-
-
-        console.log("REnder", this.props.node)
-        var folder = [];
-
-        if (this.props.node) {
-            folder = this.props.node.map(function (node, indexRoot) {
-
-                console.log("div Id ", node.id);
-                if (node.childNodes != null) {
-                    childNodes = node.childNodes.map(function (childnode, index) {
-
-                        return (<ListItem leftAvatar={<Avatar icon={<ActionAssignment />} backgroundColor={blue500} />}
-                            rightIconButton={<IconButton onClick={() => { _this.onFileDelete(indexRoot, index) } }  ><ActionDelete color={grey400} /></IconButton>}
-                            innerDivStyle={styles.listItem}
-                            key={childnode.id} >
-                            <TextField
-                                defaultValue={childnode.title}
-                                style={styles.listTextBox}
-                                hintText="Enter file name"
-                                onBlur={(e) => { _this.OnEditFileName(indexRoot, index, e.target.value) } } />
-                        </ListItem>)
-                    });
-                }
-
-
-                return (<div key={"div_" + node.id}>
-                    <List>
-
-                        <ListItem
-                            leftAvatar={<Avatar icon={<FileFolder />} backgroundColor={yellow600} />}
-                            rightIconButton={<IconButton onClick={() => { _this.handleDeleteFolder(node) } }  ><ActionDelete color={grey400} /></IconButton>}
-                            key={node.id}
-                            innerDivStyle={styles.listItem}
-                            >
-                            <TextField
-                                defaultValue={node.title}
-                                style={styles.listTextBox}
-                                hintText="Enter folder name"
-                                onBlur={(e) => { _this.handleEditFolder(node.id, e.target.value) } }
-                                />
-                        </ListItem>
-                        {childNodes}
-                        <ListItem key={"add" + node.id}
-                            primaryText="Add More File"
-                            rightIcon={<ContentAdd />}
-                            onClick={(event) => _this.handleAddFile(event, node)} />
-                    </List>
-                    <Divider inset={true} />
-                </div>)
-            });
-        }
         return (<div>
             <div style={styles.fileTree}>
-                {folder}
+                {this.renderListTree()}
                 <div id="lastFolder"></div>
             </div>
-            <RaisedButton label="New Folder" secondary={true} style={styles.addFolder} onClick={_this.handleNewFolder} />
+            <RaisedButton label="New Folder" secondary={true} style={styles.addFolder} onClick={this.handleNewFolder} />
             <Snackbar
                 open={this.state.snackbaropen}
                 message={this.state.snackbarMsg}
@@ -275,7 +257,9 @@ function mapDispatchToProps(dispatch) {
         addFolder,
         editFolder,
         deleteFolder,
-        addFile
+        addFile,
+        editFile,
+        deleteFile
     }, dispatch);
 }
 

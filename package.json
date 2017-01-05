@@ -4,6 +4,7 @@
   "description": "code editor",
   "main": "server.js",
   "scripts": {
+    "start": "node ./app/node_modules/webpack-dev-server/bin/webpack-dev-server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "naveen sharma",

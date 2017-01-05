@@ -210,9 +210,6 @@ onFolderDelete(folderIndex){
                 });
   }
   
-
-
-
   render() {
   	var childNodes=[];
     var classObj;
@@ -231,7 +228,6 @@ onFolderDelete(folderIndex){
        
             if (node.childNodes != null) {
                 childNodes = node.childNodes.map(function(childnode, index) {
-                    
                             return (<ListItem  leftAvatar={<Avatar icon={<ActionAssignment />} backgroundColor={blue500} />}
                               rightIconButton={<IconButton  onClick={()=>{_this.onFileDelete(indexRoot,index)}}  ><ActionDelete color={grey400}/></IconButton>} 
                               innerDivStyle = {styles.listItem} 

@@ -9,7 +9,7 @@ import reducers from './reducers';
 //Material Touch Event
 //import injectTapEventPlugin from 'react-tap-event-plugin';
 //injectTapEventPlugin();
- 
+
 
 const createStoreWithMiddleware = applyMiddleware()(createStore);
 
@@ -17,4 +17,4 @@ ReactDOM.render(
   <Provider store={createStoreWithMiddleware(reducers)}>
     <App />
   </Provider>
-  , document.getElementById('container'));
+  , document.getElementById('app'));

@@ -3,6 +3,10 @@ export const FOLDER_ADD = 'FOLDER_ADD';
 export const FOLDER_EDIT = 'FOLDER_EDIT';
 export const FOLDER_DELETE = 'FOLDER_DELETE';
 export const FILE_ADD = 'FILE_ADD';
+export const FILE_EDIT = 'FILE_EDIT';
+export const FILE_DELETE = 'FILE_DELETE';
+export const CODE_CHANGE = 'CODE_CHANGE';
+export const CODE_CLEAR = 'CODE_CLEAR';
 
 export function addFolder() {
     return {
@@ -30,3 +34,24 @@ export function addFile(folder) {
         payload: folder
     }
 }
+
+export function editFile(file) {
+    return {
+        type: FILE_EDIT,
+        payload: file
+    }
+}
+export function deleteFile(file) {
+    return {
+        type: FILE_DELETE,
+        payload: file
+    }
+}
+
+export function codeChange(payload) {
+    return {
+        type: CODE_CHANGE,
+        payload: payload
+    }
+}
+
