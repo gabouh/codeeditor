@@ -18,7 +18,7 @@ class CodeTabs extends React.Component {
 
   renderFileTab(node, childnode) {
     return (<Tab key={childnode.id} label={childnode.title} style={{ 'background': 'rgb(33, 150, 243)' }}>
-      <CodeEditor file={childnode} parentId={node.id} />
+      <CodeEditor file={childnode} parentId={node.id} readOnly={this.props.readOnly?this.props.readOnly:false}/>
     </Tab>)
   }
 

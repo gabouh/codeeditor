@@ -17,11 +17,14 @@ import CodeMirror from 'react-codemirror';
 import CopyToClipboard from 'react-copy-to-clipboard';
 
 import javascript from 'codemirror/mode/javascript/javascript';
+require('codemirror/mode/clike/clike');
 
 //action
 import { codeChange } from '../actions/action_fileTree'
 
-
+//css 
+import { } from 'codemirror/theme/duotone-dark.css'
+import { } from 'codemirror/theme/yeti.css'
 
 const styles = {
     language: {
@@ -49,8 +52,9 @@ class CodeEditor extends React.Component {
                 timeout: 4000
             },
             value: this.props.file.code.value,
-
-
+            //language: this.props.file.code.language
+            language: 'javascript',
+            theme: 'default'
         };
 
 
@@ -61,6 +65,8 @@ class CodeEditor extends React.Component {
         this.interact = this.interact.bind(this);
 
         this.handleClearCode = this.handleClearCode.bind(this);
+
+        this.handleThemeChange = this.handleThemeChange.bind(this);
 
         this.openSnackBar = this.openSnackBar.bind(this);
         //Snackbar
@@ -84,33 +90,52 @@ class CodeEditor extends React.Component {
         return debounceCodeChange;
     }
     updateCode(newCode) {
-
-
         this.setState((prevState) => {
-            // console.log("prev state", prevState);
-            // let newFile = { ...prevState.file };
-            // // payload.folderId = this.props.parentId;
-            // newFile.code = { ...newFile.code, value: newCode };//newCode;
-            // console.log("new state", newFile);
-            // return { ...prevState, file: newFile };
-
             return { ...prevState, value: newCode };
         });
-
-        //;
-
-
         this.debounceCodeChange();
 
     };
     changeMode(event, index, value) {
-        this.props.file.code.language = value;
+        let payload = {};
+        payload.file = { ...this.props.file };
+        payload.file.code = { ...payload.file.code, language: value }
+        payload.folderId = this.props.parentId;
+        this.props.codeChange(payload);
+        this.setState((prevState) => {
+            return { ...prevState, language: value };
+        });
     }
+    handleClearCode() {
 
+        let payload = {};
+        payload.file = { ...this.props.file };
+        payload.file.code = { ...payload.file.code, value: '' }
+        payload.folderId = this.props.parentId;
+        this.props.codeChange(payload);
+
+        this.setState((prevState) => {
+            return {
+                ...prevState, snackBar: {
+                    ...prevState.snackBar,
+                    open: true,
+                    message: 'Code has been cleared.',
+                    timeout: 4000,
+                    action: "close"
+                },
+                value: ''
+            };
+        });
+    }
     interact(cm) {
         console.log(cm.getValue());
     };
 
+    handleThemeChange(event, index, value) {
+        this.setState((prevState) => {
+            return { ...prevState, theme: value }
+        });
+    }
     openSnackBar() {
         this.setState((prevState) => {
 
@@ -156,34 +181,21 @@ class CodeEditor extends React.Component {
         });
     }
 
-    handleClearCode() {
-        var newCode = '';
-        this.props.file.code.value = newCode;
 
-        this.setState((prevState) => {
-            return {
-                ...prevState, snackBar:
-                {
-                    ...prevState.snackBar,
-                    open: true,
-                    message: 'Code has been cleared.',
-                    timeout: 4000,
-                    action: "close"
-                }
-            };
-        });
-
-        if (this.props.onChange)
-            this.props.onChange(newCode);
-    }
 
 
     render() {
 
+        console.log(this.props.readOnly);
+
+        let isReadOnly = this.props.readOnly ? this.props.readOnly : false
+
         var options = {
             lineNumbers: true,
             readOnly: this.state.readOnly,
-            mode: this.props.file.code.language
+            mode: this.state.language,
+            theme: this.state.theme,
+            readOnly: isReadOnly
         };
         return (
             <div className="row">
@@ -193,33 +205,55 @@ class CodeEditor extends React.Component {
                         value={this.state.value}
                         onChange={this.updateCode}
                         options={options}
-                        interact={this.interact} />
+                        interact={this.interact}
+                        />
                 </div>
                 <div className="col-md-12">
+                    <div className="row">
+                        <div className="col-md-4">
+                            <SelectField
+                                floatingLabelText="Language"
+                                onChange={this.changeMode}
+                                value={this.state.language}
+                                disabled={isReadOnly}
+                                >
+                                <MenuItem value={"markdown"} primaryText="markdown" />
+                                <MenuItem value={"javascript"} primaryText="javascript" />
+                            </SelectField>
+                           </div>
+                           <div className="col-md-4">
+                            <SelectField
+                                floatingLabelText="Theme"
+                                onChange={this.handleThemeChange}
+                                value={this.state.theme}
+                                >
+                                <MenuItem value={"default"} primaryText="default" />
+                                <MenuItem value={"duotone-dark"} primaryText="duotone-dark" />
+                            </SelectField>
+                        </div>
+                        <div className="col-md-4">
+                            <div style={{ display: isReadOnly ? 'none' : 'block' }}>
+                                <FlatButton
+                                    label="Clear"
+                                    style={styles.clear}
+                                    onClick={this.handleClearCode}
+                                    />
+                            </div>
+                            <CopyToClipboard text={this.props.file.code.value}
+                                onCopy={() => this.openSnackBar()}>
+                                <FlatButton
+                                    label="Copy"
+                                    primary={true}
+                                    style={styles.copy}
+                                    />
+                            </CopyToClipboard>
+                        </div>
+
+                    </div>
 
 
-                    <FlatButton
-                        label="Clear"
-                        style={styles.clear}
-                        onClick={this.handleClearCode}
-                        />
-                    <CopyToClipboard text={this.props.file.code.value}
-                        onCopy={() => this.openSnackBar()}>
-                        <FlatButton
-                            label="Copy"
-                            primary={true}
-                            style={styles.copy}
-                            />
-                    </CopyToClipboard>
 
-                    <SelectField
-                        floatingLabelText="Language"
-                        onChange={this.changeMode}
-                        value={this.props.file.code.language}
-                        >
-                        <MenuItem value={"markdown"} primaryText="markdown" />
-                        <MenuItem value={"javascript"} primaryText="javascript" />
-                    </SelectField>
+
                 </div>
 
                 <Snackbar

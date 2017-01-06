@@ -6,7 +6,6 @@ export const FILE_ADD = 'FILE_ADD';
 export const FILE_EDIT = 'FILE_EDIT';
 export const FILE_DELETE = 'FILE_DELETE';
 export const CODE_CHANGE = 'CODE_CHANGE';
-export const CODE_CLEAR = 'CODE_CLEAR';
 
 export function addFolder() {
     return {
@@ -54,4 +53,6 @@ export function codeChange(payload) {
         payload: payload
     }
 }
+
+
 

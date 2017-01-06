@@ -13,13 +13,11 @@ appBar: {
   },
 };
 
-const AppBarExampleIcon = () => (
+const AppBarIcon = () => (
   <AppBar
     title="Code"
-    
     iconStyleLeft={styles.appBar}
-    
   />
 );
 
-export default AppBarExampleIcon;
+export default AppBarIcon;

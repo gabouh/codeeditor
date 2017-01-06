@@ -38,7 +38,7 @@ export default function (state = [], action) {
 
   let fileTemplate = {
     id: guid(),
-    title: '',
+    title: 'New file',
     code: {
       value: 'function(){console.log("Hello")}',
       language: 'javascript'
@@ -46,7 +46,7 @@ export default function (state = [], action) {
   };
   let folderTemplate = {
     id: guid(),
-    title: '',
+    title: 'New folder',
     childNodes: [fileTemplate]
   };
 
