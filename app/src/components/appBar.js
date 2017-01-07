@@ -15,7 +15,7 @@ appBar: {
 
 const AppBarIcon = () => (
   <AppBar
-    title="Code"
+    title="Codiyapa Code"
     iconStyleLeft={styles.appBar}
   />
 );

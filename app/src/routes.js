@@ -9,6 +9,7 @@ import CodeView  from './components/codeview'
 
 export default (
     <Route path="/" component={App} >
+        <IndexRoute component={CodeView} />
         <Route path="/edit" component={CodeEdit}/>
         <Route path="/view" component={CodeView}/>
     </Route>
