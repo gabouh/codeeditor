@@ -10,10 +10,17 @@ import { blue500, yellow600 } from 'material-ui/styles/colors';
 //custom Components 
 import CodeEditor from './codeEditor';
 
+//action
+import {
+    getAllFolder
+} from '../actions/action_fileTree'
+
 class CodeTabs extends React.Component {
 
   constructor(props) {
     super(props);
+     if (this.props.node)
+            this.props.getAllFolder();
   }
 
   renderFileTab(node, childnode) {
@@ -54,4 +61,11 @@ function mapStateToProps(state) {
   };
 }
 
-export default connect(mapStateToProps)(CodeTabs);
+
+function mapDispatchToProps(dispatch) {
+    return bindActionCreators({
+        getAllFolder
+    }, dispatch);
+}
+
+export default connect(mapStateToProps,mapDispatchToProps)(CodeTabs);

@@ -87,6 +87,8 @@ class TreeNode extends React.Component {
         this.handleSnackbarCloseTouchTap = this.handleSnackbarCloseTouchTap.bind(this);
         this.handleSnackbarRequestClose = this.handleSnackbarRequestClose.bind(this);
 
+       
+
     }
 
 
@@ -116,7 +118,7 @@ class TreeNode extends React.Component {
     // Add More File Click Event 
     handleAddFile(event, folder) {
 
-        this.props.addFile(folder)
+        this.props.addFile(folder.id);
 
         this.setState((prevState) => {
             return { ...prevState, snackbarMsg: 'New file added', snackbaropen: true }

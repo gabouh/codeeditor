@@ -1,5 +1,6 @@
 
 import {
+  FETCH_FOLDERS,
   FOLDER_ADD,
   FOLDER_EDIT,
   FOLDER_DELETE,
@@ -52,33 +53,47 @@ export default function (state = [], action) {
 
   let folderIndex = 0;
 
-  if (state.length == 0)
-    return [...state, folderTemplate];
+  if (action.type == '@@redux/INIT') {
+    return state;
+  }
 
   switch (action.type) {
+    case FETCH_FOLDERS:
+
+      return action.payload.data;
+
     case FOLDER_ADD:
-      return [...state, folderTemplate];
+      console.log(action.payload);
+      return [...state, action.payload.data];
     case FOLDER_EDIT:
-      folderIndex = findIndex(state, 'id', action.payload.id);
-      let find = { ...state[folderIndex], title: action.payload.title };
+      console.log(action.payload);
+      folderIndex = findIndex(state, 'id', action.payload.data.id);
+      let find = { ...state[folderIndex], title: action.payload.data.title };
       let result = [...state.slice(0, folderIndex), find, ...state.slice(folderIndex + 1)]
       return result;
     case FOLDER_DELETE:
-      return _.reject(state, function (o) { return o.id == action.payload.id; });
+      console.log(action.payload);
+
+      if (action.payload.status == 200) {
+        return _.reject(state, function (o) { return o.id == action.payload.data.id; });
+      }
+      else {
+        return state;
+      }
 
     case FILE_ADD:
-      folderIndex = findIndex(state, 'id', action.payload.id);
-      let newChildNodes = [...state[folderIndex].childNodes, fileTemplate];
+      folderIndex = findIndex(state, 'id', action.payload.data.folderId);
+      let newChildNodes = [...state[folderIndex].childNodes, action.payload.data.file];
       let newState = [...state]
       newState[folderIndex].childNodes = newChildNodes;
       return [...newState];
 
     case FILE_EDIT:
       {
-        folderIndex = findIndex(state, 'id', action.payload.folderId);
-        let fileIndex = findIndex(state[folderIndex].childNodes, 'id', action.payload.file.id);
+        folderIndex = findIndex(state, 'id', action.payload.data.folderId);
+        let fileIndex = findIndex(state[folderIndex].childNodes, 'id', action.payload.data.file.id);
         //let currentFile = { ...state[folderIndex].childNodes[fileIndex], title: action.payload.title };
-        let currentFile = { ...action.payload.file };
+        let currentFile = { ...action.payload.data.file };
         let newChildNodes = [...state[folderIndex].childNodes.slice(0, fileIndex), currentFile, ...state[folderIndex].childNodes.slice(fileIndex + 1)];
         let newState = [...state];
         newState[folderIndex].childNodes = newChildNodes;
@@ -88,8 +103,8 @@ export default function (state = [], action) {
       break;
     case FILE_DELETE:
       {
-        folderIndex = findIndex(state, 'id', action.payload.folderId);
-        let fileIndex = findIndex(state[folderIndex].childNodes, 'id', action.payload.file.id);
+        folderIndex = findIndex(state, 'id', action.payload.data.folderId);
+        let fileIndex = findIndex(state[folderIndex].childNodes, 'id', action.payload.data.file.id);
         let newChildNodes = [...state[folderIndex].childNodes.slice(0, fileIndex), ...state[folderIndex].childNodes.slice(fileIndex + 1)];
         let newState = [...state];
         newState[folderIndex].childNodes = newChildNodes;
@@ -99,11 +114,11 @@ export default function (state = [], action) {
 
     case CODE_CHANGE:
       {
-        console.log(Date()); 
-        let folderIndex = findIndex(state, 'id', action.payload.folderId);
-        let fileIndex = findIndex(state[folderIndex].childNodes, 'id', action.payload.file.id);
+       
+        let folderIndex = findIndex(state, 'id', action.payload.data.folderId);
+        let fileIndex = findIndex(state[folderIndex].childNodes, 'id', action.payload.data.file.id);
         //let currentFile = { ...state[folderIndex].childNodes[fileIndex], code.value: action.payload.title };
-        let currentFile = { ...action.payload.file };
+        let currentFile = { ...action.payload.data.file };
         let newChildNodes = [...state[folderIndex].childNodes.slice(0, fileIndex), currentFile, ...state[folderIndex].childNodes.slice(fileIndex + 1)];
         let newState = [...state];
         newState[folderIndex].childNodes = newChildNodes;
