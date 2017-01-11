@@ -1,16 +1,8 @@
 import React from 'react';
+
 //redux
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-//action
-import {
-    addFolder,
-    editFolder,
-    deleteFolder,
-    addFile,
-    editFile,
-    deleteFile
-} from '../actions/action_fileTree'
 
 //Material Components
 import { List, ListItem } from 'material-ui/List';
@@ -29,12 +21,23 @@ import ActionHome from 'material-ui/svg-icons/action/home';
 import ActionDelete from 'material-ui/svg-icons/action/delete';
 import RaisedButton from 'material-ui/RaisedButton';
 import TextField from 'material-ui/TextField'
-
 import IconMenu from 'material-ui/IconMenu';
 import MenuItem from 'material-ui/MenuItem'
 import MoreVertIcon from 'material-ui/svg-icons/navigation/more-vert';
 import Snackbar from 'material-ui/Snackbar';
 
+//action
+import {
+    addFolder,
+    editFolder,
+    deleteFolder,
+    addFile,
+    editFile,
+    deleteFile
+} from '../actions/action_fileTree';
+
+
+//styles
 const styles = {
     addFolder: {
         'marginTop': '5px',
@@ -52,17 +55,39 @@ const styles = {
         'height': '500px'
     }
 }
-
-
-const newFileTemplate = {
-    title: '',
-    id: 1,
-    code: {
-        language: 'javascript',
-        value: '//Code'
+//Helperfunction 
+function guid() {
+    function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000)
+            .toString(16)
+            .substring(1);
     }
+    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+        s4() + '-' + s4() + s4() + s4();
 }
 
+//file and folder template
+function getFileTemplate() {
+    let fileTemplate = {
+        id: guid(),
+        title: 'New file',
+        code: {
+            value: 'function(){console.log("Hello")}',
+            language: 'javascript'
+        }
+    };
+    return fileTemplate;
+}
+function getFolderTemplate() {
+    let folderTemplate = {
+        id: guid(),
+        title: 'New folder',
+        childNodes: [getFileTemplate()]
+    };
+    return folderTemplate;
+}
+
+//Custom Cointainer
 class TreeNode extends React.Component {
     constructor(props) {
         super(props);
@@ -86,15 +111,15 @@ class TreeNode extends React.Component {
         //Snackbar
         this.handleSnackbarCloseTouchTap = this.handleSnackbarCloseTouchTap.bind(this);
         this.handleSnackbarRequestClose = this.handleSnackbarRequestClose.bind(this);
-
-       
-
     }
-
 
     //folder methods
     handleNewFolder() {
-        this.props.addFolder();
+        let folderTemplate = getFolderTemplate();
+        const {socket, addFolder} = this.props;
+        socket.emit('folder add', folderTemplate);
+        addFolder(folderTemplate);
+
         this.setState((prevState) => {
             return { ...prevState, snackbarMsg: 'New Folder added', snackbaropen: true }
         });
@@ -105,48 +130,55 @@ class TreeNode extends React.Component {
         }, 0);
     }
 
-    handleEditFolder(id, name) {
-        this.props.editFolder({ id: id, title: name });
+    handleEditFolder(folder, name) {
+        var payload = {};
+        payload = { ...folder, title: name };
+        const {socket, editFolder} = this.props;
+        socket.emit('folder edit', payload);
+        editFolder({ id: folder.id, title: name });
     }
 
     handleDeleteFolder(folder) {
-        this.props.deleteFolder(folder);
+        const {socket, deleteFolder} = this.props;
+        socket.emit('folder delete', folder);
+        deleteFolder(folder);
     }
 
     //Files
 
     // Add More File Click Event 
     handleAddFile(event, folder) {
-
-        this.props.addFile(folder.id);
-
+        let fileTemplate = getFileTemplate();
+        const {socket, addFile} = this.props;
+        let payload = { folderId: folder.id, file: fileTemplate };
+        socket.emit('file add', payload);
+        addFile(folder.id, fileTemplate);
         this.setState((prevState) => {
             return { ...prevState, snackbarMsg: 'New file added', snackbaropen: true }
         });
-
     }
 
     //handle File name Edit
     OnEditFileName(folderId, file, filename) {
-
         var payload = {};
         payload.file = { ...file, title: filename };
         payload.folderId = folderId;
-        this.props.editFile(payload);
+        const {socket, editFile} = this.props;
+        socket.emit('file edit', payload);
+        editFile(payload);
     }
-
-
 
     // handle file delete  
     onFileDelete(folderId, file) {
         var payload = {};
         payload.file = { ...file };
         payload.folderId = folderId;
-        this.props.deleteFile(payload);
+        const {socket, deleteFile} = this.props;
+        socket.emit('file delete', payload);
+        deleteFile(payload);
     }
 
     //Snackbar methods
-
     handleSnackbarCloseTouchTap() {
         this.setState((prevState) => {
             return { ...prevState, snackbaropen: false }
@@ -170,6 +202,7 @@ class TreeNode extends React.Component {
             {this.renderFileTextBox(node, childnode)}
         </ListItem>)
     }
+
     renderFileTextBox(node, childnode) {
         // let _this = context;
         return (<TextField
@@ -180,14 +213,16 @@ class TreeNode extends React.Component {
 
         );
     }
+
     renderFolderTextBox(node) {
         return (<TextField
             defaultValue={node.title}
             style={styles.listTextBox}
             hintText="Enter folder name"
-            onBlur={(e) => { this.handleEditFolder(node.id, e.target.value) } }
+            onBlur={(e) => { this.handleEditFolder(node, e.target.value) } }
             />)
     }
+
     renderFolderListItem(node) {
         return (<ListItem
             leftAvatar={<Avatar icon={<FileFolder />} backgroundColor={yellow600} />}
@@ -227,14 +262,12 @@ class TreeNode extends React.Component {
     }
 
     render() {
-
-
         return (<div>
+            <RaisedButton label="New Folder" secondary={true} style={styles.addFolder} onClick={this.handleNewFolder} />
             <div style={styles.fileTree}>
                 {this.renderListTree()}
                 <div id="lastFolder"></div>
             </div>
-            <RaisedButton label="New Folder" secondary={true} style={styles.addFolder} onClick={this.handleNewFolder} />
             <Snackbar
                 open={this.state.snackbaropen}
                 message={this.state.snackbarMsg}
@@ -244,7 +277,6 @@ class TreeNode extends React.Component {
                 onRequestClose={this.handleSnackbarRequestClose}
                 />
         </div>);
-
     }
 }
 

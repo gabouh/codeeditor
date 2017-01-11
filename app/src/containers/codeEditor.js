@@ -2,30 +2,26 @@ import React from 'react';
 //redux
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-
-import _ from 'lodash';
-
-
+//material-ui
 import FlatButton from 'material-ui/FlatButton';
 import SelectField from 'material-ui/SelectField';
 import MenuItem from 'material-ui/MenuItem';
 import { Tab } from 'material-ui/Tabs'
 import Snackbar from 'material-ui/Snackbar';
 import { red500 } from 'material-ui/styles/colors';
-
+//codemirror
 import CodeMirror from 'react-codemirror';
-import CopyToClipboard from 'react-copy-to-clipboard';
-
 import javascript from 'codemirror/mode/javascript/javascript';
 require('codemirror/mode/clike/clike');
-
-//action
-import { codeChange } from '../actions/action_fileTree'
-
-//css 
+//codemirror css 
 import { } from 'codemirror/theme/duotone-dark.css'
 import { } from 'codemirror/theme/yeti.css'
-
+//miscellaneous
+import CopyToClipboard from 'react-copy-to-clipboard';
+//action
+import { codeChange } from '../actions/action_fileTree';
+import { codeReceive, deletedFileReceive } from '../actions/socket_actions';
+//styles
 const styles = {
     language: {
         width: 200,
@@ -39,8 +35,8 @@ const styles = {
         float: 'right'
     }
 };
+//Custom Container
 class CodeEditor extends React.Component {
-
 
     constructor(props) {
         super(props);
@@ -51,69 +47,96 @@ class CodeEditor extends React.Component {
                 action: '',
                 timeout: 4000
             },
+            hasChange: false,
             value: this.props.file.code.value,
-            //language: this.props.file.code.language
-            language: 'javascript',
+            language: this.props.file.code.language ? this.props.file.code.language : 'javascript',
             theme: 'default'
         };
-
-
-        //console.log(this.state.file);
-
         this.updateCode = this.updateCode.bind(this);
         this.changeMode = this.changeMode.bind(this);
         this.interact = this.interact.bind(this);
-
+        this.triggerUpdate = this.triggerUpdate.bind(this);
         this.handleClearCode = this.handleClearCode.bind(this);
-
         this.handleThemeChange = this.handleThemeChange.bind(this);
-
-        this.openSnackBar = this.openSnackBar.bind(this);
         //Snackbar
+        this.openSnackBar = this.openSnackBar.bind(this);
         this.handleSnackbarTouchTap = this.handleSnackbarTouchTap.bind(this);
         this.handleSnackbarRequestClose = this.handleSnackbarRequestClose.bind(this);
-
+        // debounce code edit
         this.debounceCodeChange = this.debounceCodeChange();
     }
 
+    componentDidMount() {
+
+        // var _this = this;
+        // const {socket} = this.props;
+        // socket.on('code edit bc', (data) => {
+        //     console.log('Broadcast data', data);
+        //     _this.props.codeReceive(data);
+        //     _this.setState((prevState) => {
+        //         return {
+        //             ...prevState,
+        //             value: data.file.code.value,
+        //             language: data.file.code.language
+        //         };
+        //     });
+        // });
+
+    }
     debounceCodeChange() {
         var _this = this;
         let debounceCodeChange = _.debounce(() => {
-
             let payload = {};
             payload.file = { ..._this.props.file };
             payload.file.code = { ...payload.file.code, value: _this.state.value }
             payload.folderId = _this.props.parentId;
-            _this.props.codeChange(payload)
+            _this.triggerUpdate(payload);
         }, 2000);
-
         return debounceCodeChange;
     }
+
+    triggerUpdate(payload) {
+        const {socket} = this.props;
+        socket.emit('code edit', payload);
+        this.props.codeChange(payload);
+        this.setState((prevState) => {
+            return {
+                ...prevState,
+                hasChange: false
+            };
+        });
+    }
+
     updateCode(newCode) {
         this.setState((prevState) => {
-            return { ...prevState, value: newCode };
+            return {
+                ...prevState, value: newCode,
+                hasChange: true
+            };
         });
         this.debounceCodeChange();
-
     };
+
     changeMode(event, index, value) {
         let payload = {};
         payload.file = { ...this.props.file };
         payload.file.code = { ...payload.file.code, language: value }
         payload.folderId = this.props.parentId;
-        this.props.codeChange(payload);
+        this.triggerUpdate(payload);
         this.setState((prevState) => {
-            return { ...prevState, language: value };
+            return {
+                ...prevState, language: value,
+                hasChange: true
+            };
         });
     }
-    handleClearCode() {
 
+    handleClearCode() {
         let payload = {};
         payload.file = { ...this.props.file };
         payload.file.code = { ...payload.file.code, value: '' }
         payload.folderId = this.props.parentId;
-        this.props.codeChange(payload);
-
+        this.triggerUpdate(payload);
         this.setState((prevState) => {
             return {
                 ...prevState, snackBar: {
@@ -123,10 +146,12 @@ class CodeEditor extends React.Component {
                     timeout: 4000,
                     action: "close"
                 },
-                value: ''
+                value: '',
+                hasChange: true
             };
         });
     }
+
     interact(cm) {
         console.log(cm.getValue());
     };
@@ -136,9 +161,9 @@ class CodeEditor extends React.Component {
             return { ...prevState, theme: value }
         });
     }
+
     openSnackBar() {
         this.setState((prevState) => {
-
             return {
                 ...prevState, snackBar:
                 {
@@ -151,12 +176,9 @@ class CodeEditor extends React.Component {
             };
         });
     }
+
     //Snackbar methods..
     handleSnackbarTouchTap(type) {
-
-        //TODO: Implement UNDO for type== clear
-
-        // console.log(type);
         this.setState((prevState) => {
             return {
                 ...prevState, snackBar:
@@ -181,15 +203,21 @@ class CodeEditor extends React.Component {
         });
     }
 
-
-
-
     render() {
+        var codeVal = '';
+        var codeLang = '';
+        if (this.state.hasChange) {
+            codeVal = this.state.value;
+            codeLang = this.state.language;
+        }
+        else {
+            codeVal = this.props.file.code.value;
+            codeLang = this.props.file.code.language;
+        }
 
-        console.log(this.props.readOnly);
+
 
         let isReadOnly = this.props.readOnly ? this.props.readOnly : false
-
         var options = {
             lineNumbers: true,
             readOnly: this.state.readOnly,
@@ -199,10 +227,9 @@ class CodeEditor extends React.Component {
         };
         return (
             <div className="row">
-
                 <div className="col-md-12">
                     <CodeMirror ref="editor"
-                        value={this.state.value}
+                        value={codeVal}
                         onChange={this.updateCode}
                         options={options}
                         interact={this.interact}
@@ -214,14 +241,14 @@ class CodeEditor extends React.Component {
                             <SelectField
                                 floatingLabelText="Language"
                                 onChange={this.changeMode}
-                                value={this.state.language}
+                                value={codeLang}
                                 disabled={isReadOnly}
                                 >
                                 <MenuItem value={"markdown"} primaryText="markdown" />
                                 <MenuItem value={"javascript"} primaryText="javascript" />
                             </SelectField>
-                           </div>
-                           <div className="col-md-4">
+                        </div>
+                        <div className="col-md-4">
                             <SelectField
                                 floatingLabelText="Theme"
                                 onChange={this.handleThemeChange}
@@ -248,14 +275,8 @@ class CodeEditor extends React.Component {
                                     />
                             </CopyToClipboard>
                         </div>
-
                     </div>
-
-
-
-
                 </div>
-
                 <Snackbar
                     open={this.state.snackBar.open}
                     message={this.state.snackBar.message}
@@ -264,14 +285,15 @@ class CodeEditor extends React.Component {
                     onActionTouchTap={() => this.handleSnackbarTouchTap(this.state.snackBar.action)}
                     onRequestClose={this.handleSnackbarRequestClose}
                     />
-
             </div>
         );
     }
 }
 
 function mapDispatchToProps(dispatch) {
-    return bindActionCreators({ codeChange }, dispatch);
+    return bindActionCreators({
+        codeChange
+    }, dispatch);
 }
 
 export default connect(null, mapDispatchToProps)(CodeEditor);

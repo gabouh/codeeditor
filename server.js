@@ -51,7 +51,8 @@ var config = require('./src/config/config');
 var express = require('./src/config/express');
 //var mongodb = require('./src/config/mongoose');
 var appState = require('./src/config/appstate');
-console.log(appState);
+var SocketIo = require('socket.io');
+
 // Initialize appState
 appState(function startServer() {
   console.log("Ready to create");
@@ -59,7 +60,7 @@ appState(function startServer() {
   var app = express.init();
 
   // Start up the server on the port specified in the config after we connected to mongodb
-  app.listen(config.server.port, function () {
+ var server =  app.listen(config.server.port, function () {
     var serverBanner = ['',
       '*************************************' + ' EXPRESS SERVER '.yellow + '********************************************',
       '*',
@@ -76,6 +77,8 @@ appState(function startServer() {
     logger.info(serverBanner);
   });
 
+ const io = new SocketIo(server, {path: '/api/codeeditor'});
+ const socketEvents = require('./socketEvents')(io);
   // '* @license ' + pkg.license.type + ', ' + pkg.license.url,
   // 
   module.exports = app;

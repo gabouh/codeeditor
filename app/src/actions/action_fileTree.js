@@ -1,14 +1,14 @@
 import axios from 'axios';
-
-export const FETCH_FOLDERS = 'FETCH_FOLDERS';
-export const FOLDER_ADD = 'FOLDER_ADD';
-export const FOLDER_EDIT = 'FOLDER_EDIT';
-export const FOLDER_DELETE = 'FOLDER_DELETE';
-export const FILE_ADD = 'FILE_ADD';
-export const FILE_EDIT = 'FILE_EDIT';
-export const FILE_DELETE = 'FILE_DELETE';
-export const CODE_CHANGE = 'CODE_CHANGE';
-
+import {
+  FETCH_FOLDERS,
+  FOLDER_ADD,
+  FOLDER_EDIT,
+  FOLDER_DELETE,
+  FILE_ADD,
+  FILE_EDIT,
+  FILE_DELETE,
+  CODE_CHANGE
+} from '../constants/actionTypes';
 //const RootURL 
 
 export function getAllFolder() {
@@ -20,8 +20,8 @@ export function getAllFolder() {
 }
 
 
-export function addFolder() {
-    const request = axios.post('/api/folder')
+export function addFolder(folder) {
+    const request = axios.post('/api/folder',folder)
     return {
         type: FOLDER_ADD,
         payload: request
@@ -46,8 +46,8 @@ export function deleteFolder(folder) {
     }
 }
 
-export function addFile(folderId) {
-    const request = axios.post(`/api/file/${folderId}`);
+export function addFile(folderId,file) {
+    const request = axios.post(`/api/file/${folderId}`,file);
     return {
         type: FILE_ADD,
         payload: request

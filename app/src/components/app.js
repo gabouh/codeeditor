@@ -18,12 +18,13 @@ export default class App extends React.Component {
     super(props);
   }
 
+  
   render() {
     return (
       <MuiThemeProvider>
         <div>
-          <AppBarIcon/>
-          {this.props.children}
+          <AppBarIcon />
+          { this.props.children}
         </div>
       </MuiThemeProvider>);
   }

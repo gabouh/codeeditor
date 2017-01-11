@@ -8,19 +8,8 @@ import {
   FILE_EDIT,
   FILE_DELETE,
   CODE_CHANGE
-} from '../actions/action_fileTree';
+} from '../constants/actionTypes';
 import _ from 'lodash';
-
-
-function guid() {
-  function s4() {
-    return Math.floor((1 + Math.random()) * 0x10000)
-      .toString(16)
-      .substring(1);
-  }
-  return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-    s4() + '-' + s4() + s4() + s4();
-}
 
 function findIndex(arr, name, value) {
   for (let i = 0; i < arr.length; i++) {
@@ -36,50 +25,25 @@ function findIndex(arr, name, value) {
 
 
 export default function (state = [], action) {
-
-  let fileTemplate = {
-    id: guid(),
-    title: 'New file',
-    code: {
-      value: 'function(){console.log("Hello")}',
-      language: 'javascript'
-    }
-  };
-  let folderTemplate = {
-    id: guid(),
-    title: 'New folder',
-    childNodes: [fileTemplate]
-  };
-
   let folderIndex = 0;
-
-  if (action.type == '@@redux/INIT') {
-    return state;
-  }
-
   switch (action.type) {
-    case FETCH_FOLDERS:
 
+    case FETCH_FOLDERS:
       return action.payload.data;
 
     case FOLDER_ADD:
       console.log(action.payload);
       return [...state, action.payload.data];
+
     case FOLDER_EDIT:
       console.log(action.payload);
       folderIndex = findIndex(state, 'id', action.payload.data.id);
       let find = { ...state[folderIndex], title: action.payload.data.title };
       let result = [...state.slice(0, folderIndex), find, ...state.slice(folderIndex + 1)]
       return result;
-    case FOLDER_DELETE:
-      console.log(action.payload);
 
-      if (action.payload.status == 200) {
-        return _.reject(state, function (o) { return o.id == action.payload.data.id; });
-      }
-      else {
-        return state;
-      }
+    case FOLDER_DELETE:
+      return _.reject(state, function (o) { return o.id == action.payload.data.id; });
 
     case FILE_ADD:
       folderIndex = findIndex(state, 'id', action.payload.data.folderId);
@@ -101,8 +65,11 @@ export default function (state = [], action) {
         return newState;
       }
       break;
+
     case FILE_DELETE:
       {
+        console.log('delete file', action.payload.data.file.id);
+
         folderIndex = findIndex(state, 'id', action.payload.data.folderId);
         let fileIndex = findIndex(state[folderIndex].childNodes, 'id', action.payload.data.file.id);
         let newChildNodes = [...state[folderIndex].childNodes.slice(0, fileIndex), ...state[folderIndex].childNodes.slice(fileIndex + 1)];
@@ -113,23 +80,23 @@ export default function (state = [], action) {
       break;
 
     case CODE_CHANGE:
-      {
-       
-        let folderIndex = findIndex(state, 'id', action.payload.data.folderId);
-        let fileIndex = findIndex(state[folderIndex].childNodes, 'id', action.payload.data.file.id);
-        //let currentFile = { ...state[folderIndex].childNodes[fileIndex], code.value: action.payload.title };
-        let currentFile = { ...action.payload.data.file };
-        let newChildNodes = [...state[folderIndex].childNodes.slice(0, fileIndex), currentFile, ...state[folderIndex].childNodes.slice(fileIndex + 1)];
-        let newState = [...state];
-        newState[folderIndex].childNodes = newChildNodes;
-
-        console.log(newState);
-        return newState;
-
-      }
+      return onCodeChange(state, action);
       break;
-
     default:
       return [...state];
   }
+}
+
+function onCodeChange(state, action) {
+  console.log('before code change state', state);
+  let folderIndex = findIndex(state, 'id', action.payload.data.folderId);
+  let fileIndex = findIndex(state[folderIndex].childNodes, 'id', action.payload.data.file.id);
+  //let currentFile = { ...state[folderIndex].childNodes[fileIndex], code.value: action.payload.title };
+  let currentFile = { ...action.payload.data.file };
+  let newChildNodes = [...state[folderIndex].childNodes.slice(0, fileIndex), currentFile, ...state[folderIndex].childNodes.slice(fileIndex + 1)];
+  let newState = [...state];
+  newState[folderIndex].childNodes = [...newChildNodes];
+
+  console.log('code change state', newState);
+  return newState;
 }
