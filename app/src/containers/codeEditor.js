@@ -206,7 +206,9 @@ class CodeEditor extends React.Component {
     render() {
         var codeVal = '';
         var codeLang = '';
-        if (this.state.hasChange) {
+
+        let isReadOnly = this.props.readOnly ? this.props.readOnly : false;
+        if (!isReadOnly) {
             codeVal = this.state.value;
             codeLang = this.state.language;
         }
@@ -215,9 +217,6 @@ class CodeEditor extends React.Component {
             codeLang = this.props.file.code.language;
         }
 
-
-
-        let isReadOnly = this.props.readOnly ? this.props.readOnly : false
         var options = {
             lineNumbers: true,
             readOnly: this.state.readOnly,

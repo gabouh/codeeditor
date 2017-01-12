@@ -66297,7 +66297,9 @@
 
 	            var codeVal = '';
 	            var codeLang = '';
-	            if (this.state.hasChange) {
+
+	            var isReadOnly = this.props.readOnly ? this.props.readOnly : false;
+	            if (!isReadOnly) {
 	                codeVal = this.state.value;
 	                codeLang = this.state.language;
 	            } else {
@@ -66305,7 +66307,6 @@
 	                codeLang = this.props.file.code.language;
 	            }
 
-	            var isReadOnly = this.props.readOnly ? this.props.readOnly : false;
 	            var options = _defineProperty({
 	                lineNumbers: true,
 	                readOnly: this.state.readOnly,

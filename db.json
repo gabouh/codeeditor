@@ -883,7 +883,8 @@
     "2017-01-12T17:00:31.572Z",
     "2017-01-12T17:01:00.879Z",
     "2017-01-12T17:02:20.536Z",
-    "2017-01-12T17:28:31.510Z"
+    "2017-01-12T17:28:31.510Z",
+    "2017-01-12T18:04:58.906Z"
   ],
   "folderTree": [
     {
@@ -894,7 +895,7 @@
           "id": "7ad82b63-6bfc-aaf6-9fa2-5f4773dcd200",
           "title": "New file",
           "code": {
-            "value": "function(){console.log(\"Hello\")}\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+            "value": "function(){\n  console.log(\"Hello World\");\n}",
             "language": "javascript"
           }
         },
