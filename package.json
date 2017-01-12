@@ -1,16 +1,19 @@
 {
   "name": "redux-simple-starter",
   "version": "1.0.0",
-  "description": "Simple starter package for Redux with React and Babel support",
+  "description": "Code Editor",
   "main": "server.js",
   "scripts": {
-   
     "start": "node server.js",
-    "devstart": "node ./node_modules/webpack-dev-server/bin/webpack-dev-server.js",
+    "devstart": "npm run start devbundle",
+    "devbundle": "webpack",
     "test": "mocha --compilers js:babel-core/register --require ./test/test_helper.js --recursive ./test",
     "test:watch": "npm run test -- --watch"
   },
-  "author": "",
+  "author": {
+    "name": "Naveen Sharma",
+     "email":"naveen.kr.sh1993@gmail.com"
+  },
   "license": "ISC",
   "devDependencies": {
     "babel-core": "^6.2.1",
